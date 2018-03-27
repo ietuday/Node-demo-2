@@ -1,0 +1,19 @@
+It's simply “No such directory entry”. Since directory entries can be directories or files (or symlinks, or sockets, or pipes, or devices), the name ENOFILE would have been too narrow in its meaning.
+
+When execve() returns the error ENOENT, it can mean more than one thing:
+
+the program doesn't exist;
+the program itself exists, but it requires an "interpreter" that doesn't exist.
+ELF executables can request to be loaded by another program, in a way very similar to #!/bin/something in shell scripts.
+
+Usually, dynamically-linked executables request /lib/ld-linux.so.2 (or another similar path), which takes care of finding the necessary shared libraries and loading them into memory before the program itself is started.
+
+In this case, I am guessing that you're trying to run a 32-bit Skype on a 64-bit system, and you haven't installed the 32-bit glibc and other needed libraries. (On Debian, it should be libc6:i386; on Arch, lib32-glibc.)
+
+To see the exact path requested by the program, use readelf -l:
+
+$ readelf -l /bin/sh | grep interpreter
+      [Requesting program interpreter: /lib64/ld-linux-x86-64.so.2]
+
+$ readelf -l /tmp/skype-4.1.0.20/skype | grep interpreter
+      [Requesting program interpreter: /lib/ld-linux.so.2]
